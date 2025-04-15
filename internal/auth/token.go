@@ -2,13 +2,15 @@ package auth
 
 import (
 	"crypto/rand"
-	"encoding/base64"
+	"crypto/sha256"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"os"
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func GenerateAccessToken(userID, userIP, tokenID string) (string, error) {
@@ -25,10 +27,22 @@ func GenerateAccessToken(userID, userIP, tokenID string) (string, error) {
 
 func GenerateRefreshToken (userID, userIP, tokenID string) (string, error) {
 	var randBytes = make([]byte, 8)
-	rand.Read(randBytes)
+	if _, err := rand.Read(randBytes); err != nil {
+		return "", err
+	}
 	randString := hex.EncodeToString(randBytes)
 
 	token := fmt.Sprint(randString + ":" + userID + ":" + userIP + ":" + tokenID)
 
-	return base64.RawStdEncoding.EncodeToString([]byte(token)), nil
+	return token, nil
+}
+
+//accepts raw token, calculates it's sha256 hash, to ensure it meets bcrypt's maximum lenght of 72 bytes, then calculates bcrypt hash
+func GenerateBCryptHash (token string) ([]byte, error) {
+	if token == "" {
+		return nil, errors.New("empty token")
+	}
+	sha256Hash := sha256.Sum256([]byte(token))
+
+	return bcrypt.GenerateFromPassword(sha256Hash[:], bcrypt.DefaultCost)
 }
