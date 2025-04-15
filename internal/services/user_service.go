@@ -1,11 +1,11 @@
 package services
 
 import (
+	"encoding/base64"
 	"rest-service/internal/auth"
 	"rest-service/internal/entities"
 
 	"github.com/google/uuid"
-	"golang.org/x/crypto/bcrypt"
 )
 
 type UserRepository interface {
@@ -43,7 +43,7 @@ func (us *UserService) Authorize (userID uuid.UUID, userIP string) (Tokens, erro
 		}, err
 	}
 
-	refreshTokenHash, err := bcrypt.GenerateFromPassword([]byte(refreshToken), bcrypt.DefaultCost)
+	hash, err := auth.GenerateBCryptHash(refreshToken)
 	if err != nil {
 		return Tokens{
 			AccessToken: "",
@@ -51,16 +51,16 @@ func (us *UserService) Authorize (userID uuid.UUID, userIP string) (Tokens, erro
 		}, err
 	}
 
-	if err := us.repo.CreateUser(&entities.User{ID: userID, RefreshToken: string(refreshTokenHash)}); err != nil {
+	if err := us.repo.CreateUser(&entities.User{ID:userID, RefreshToken: string(hash)}); err != nil {
 		return Tokens{
 			AccessToken: "",
 			RefreshToken: "",
-		}, err
+		}, err 
 	}
+	base64EncodedRefreshToken := base64.StdEncoding.EncodeToString(hash)
 
 	return Tokens{
 		AccessToken: accesToken,
-		RefreshToken: refreshToken,
+		RefreshToken: base64EncodedRefreshToken,
 	}, nil
-
 }
