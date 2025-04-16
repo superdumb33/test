@@ -14,12 +14,17 @@ import (
 
 type AuthRepository interface {
 	CreateUser(context.Context, *entities.User) error
-	GetUser(context.Context, string) (*entities.User, error)
+	GetUser(ctx context.Context, userID string) (*entities.User, error)
 	UpdateUser(context.Context, *entities.User) error
 }
 
+type SMTPClient interface {
+	Send(to []string, subject, body string) error
+}
+
 type AuthService struct {
-	repo AuthRepository
+	repo       AuthRepository
+	smtpclient SMTPClient
 }
 
 // nice naming =)
@@ -29,17 +34,16 @@ type Tokens struct {
 }
 
 var (
-	GenerateAccessToken = auth.GenerateAccessToken
+	GenerateAccessToken  = auth.GenerateAccessToken
 	GenerateRefreshToken = auth.GenerateRefreshToken
-	GenerateBCryptHash = auth.GenerateBCryptHash
-	VerifyRefreshToken = auth.VerifyRefreshToken
-	ParseJWTToken = auth.ParseJWTToken
-	ParseRefreshToken = auth.ParseRefreshToken
+	GenerateBCryptHash   = auth.GenerateBCryptHash
+	VerifyRefreshToken   = auth.VerifyRefreshToken
+	ParseJWTToken        = auth.ParseJWTToken
+	ParseRefreshToken    = auth.ParseRefreshToken
 )
 
-
-func NewUserService(repo AuthRepository) *AuthService {
-	return &AuthService{repo: repo}
+func NewUserService(repo AuthRepository, smtpClient SMTPClient) *AuthService {
+	return &AuthService{repo: repo, smtpclient: smtpClient}
 }
 
 func (as *AuthService) Authorize(ctx context.Context, userID uuid.UUID, userIP string) (Tokens, error) {
@@ -69,7 +73,6 @@ func (as *AuthService) Authorize(ctx context.Context, userID uuid.UUID, userIP s
 		RefreshToken: encodedRefreshToken,
 	}, nil
 }
-
 
 func (as *AuthService) Refresh(ctx context.Context, accessToken, refreshToken string, userIP string) (Tokens, error) {
 	token, err := ParseJWTToken(accessToken)
@@ -102,7 +105,9 @@ func (as *AuthService) Refresh(ctx context.Context, accessToken, refreshToken st
 		return Tokens{}, errors.New("mismatched token ids")
 	}
 	if parsedRefreshtoken.UserIP != userIP {
-		log.Println("mismatched ip adress")
+		if err := as.smtpclient.Send([]string{"exampleuser@mail.com"}, "IP Address mismatch warning", "Detected an attempt to authorize from another location"); err != nil {
+			log.Println(err)
+		}
 	}
 
 	newTokenID := uuid.New()
@@ -126,9 +131,8 @@ func (as *AuthService) Refresh(ctx context.Context, accessToken, refreshToken st
 
 	encodedRefreshToken := base64.StdEncoding.EncodeToString([]byte(newRefreshToken))
 
-
 	return Tokens{
-		AccessToken: newAccessToken,
+		AccessToken:  newAccessToken,
 		RefreshToken: encodedRefreshToken,
 	}, nil
 }
