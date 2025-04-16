@@ -30,6 +30,18 @@ services:
       timeout: 5s
       retries: 5
       start_period: 10s
+  
+  test_postgres:
+    image: postgres:14
+    container_name: test_postgres
+    environment:
+      POSTGRES_USER: test_user
+      POSTGRES_PASSWORD: test_pass
+      POSTGRES_DB: test_db
+    ports:
+      - "5433:5432"
+    tmpfs:
+      - /var/lib/postgresql/data
     
 
 networks:
