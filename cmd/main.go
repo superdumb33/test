@@ -14,9 +14,9 @@ func main() {
 	app := fiber.New()
 	db := database.ConnectToDB()
 
-	userRepo := pgxrepo.NewPgxUserRepository(db)
-	userService := services.NewUserService(userRepo)
-	controllers.NewUserController(app, userService)
+	authRepo := pgxrepo.NewPgxAuthRepository(db)
+	authService := services.NewUserService(authRepo)
+	controllers.NewAuthController(app, authService)
 
 
 

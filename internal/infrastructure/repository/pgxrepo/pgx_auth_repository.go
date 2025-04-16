@@ -8,29 +8,29 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type PgxUserRepository struct {
+type PgxAuthRepository struct {
 	db *pgxpool.Pool
 }
 
-func NewPgxUserRepository (db *pgxpool.Pool) *PgxUserRepository {
-	return &PgxUserRepository{db: db}
+func NewPgxAuthRepository (db *pgxpool.Pool) *PgxAuthRepository {
+	return &PgxAuthRepository{db: db}
 }
 
-func (ur *PgxUserRepository) CreateUser (ctx context.Context, user *entities.User) error {
+func (ar *PgxAuthRepository) CreateUser (ctx context.Context, user *entities.User) error {
 	query := `INSERT INTO users (id, refresh_token) VALUES ($1, $2 )`
 
-	if _, err := ur.db.Exec(ctx, query, user.ID, user.RefreshToken); err != nil {
+	if _, err := ar.db.Exec(ctx, query, user.ID, user.RefreshToken); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (ur *PgxUserRepository) GetUser (ctx context.Context, userID string) (*entities.User, error){
+func (ar *PgxAuthRepository) GetUser (ctx context.Context, userID string) (*entities.User, error){
 	var user entities.User
 	query := `SELECT id, refresh_token FROM users WHERE id = $1`
 
-	row := ur.db.QueryRow(ctx, query, userID)
+	row := ar.db.QueryRow(ctx, query, userID)
 	if err := row.Scan(&user.ID, &user.RefreshToken); err != nil {
 		return nil, err
 	}
@@ -38,10 +38,10 @@ func (ur *PgxUserRepository) GetUser (ctx context.Context, userID string) (*enti
 	return &user, nil
 }
 
-func (ur *PgxUserRepository) UpdateUser (ctx context.Context, user *entities.User) error {
+func (ar *PgxAuthRepository) UpdateUser (ctx context.Context, user *entities.User) error {
 	query := `UPDATE users SET refresh_token = $2 WHERE id = $1`
 
-	tag, err := ur.db.Exec(ctx, query, user.ID, user.RefreshToken)
+	tag, err := ar.db.Exec(ctx, query, user.ID, user.RefreshToken)
 	if tag.RowsAffected() == 0 {
 		return errors.New("user doesn't exist")
 	}

@@ -12,14 +12,14 @@ import (
 	"github.com/google/uuid"
 )
 
-type UserRepository interface {
+type AuthRepository interface {
 	CreateUser(context.Context, *entities.User) error
 	GetUser(context.Context, string) (*entities.User, error)
 	UpdateUser(context.Context, *entities.User) error
 }
 
-type UserService struct {
-	repo UserRepository
+type AuthService struct {
+	repo AuthRepository
 }
 
 // nice naming =)
@@ -38,11 +38,11 @@ var (
 )
 
 
-func NewUserService(repo UserRepository) *UserService {
-	return &UserService{repo: repo}
+func NewUserService(repo AuthRepository) *AuthService {
+	return &AuthService{repo: repo}
 }
 
-func (us *UserService) Authorize(ctx context.Context, userID uuid.UUID, userIP string) (Tokens, error) {
+func (as *AuthService) Authorize(ctx context.Context, userID uuid.UUID, userIP string) (Tokens, error) {
 	tokenID := uuid.New()
 
 	accessToken, err := GenerateAccessToken(userID.String(), userIP, tokenID.String())
@@ -59,7 +59,7 @@ func (us *UserService) Authorize(ctx context.Context, userID uuid.UUID, userIP s
 		return Tokens{}, err
 	}
 
-	if err := us.repo.CreateUser(ctx, &entities.User{ID: userID, RefreshToken: string(hash)}); err != nil {
+	if err := as.repo.CreateUser(ctx, &entities.User{ID: userID, RefreshToken: string(hash)}); err != nil {
 		return Tokens{}, err
 	}
 	encodedRefreshToken := base64.StdEncoding.EncodeToString([]byte(refreshToken))
@@ -71,7 +71,7 @@ func (us *UserService) Authorize(ctx context.Context, userID uuid.UUID, userIP s
 }
 
 
-func (us *UserService) Refresh(ctx context.Context, accessToken, refreshToken string, userIP string) (Tokens, error) {
+func (as *AuthService) Refresh(ctx context.Context, accessToken, refreshToken string, userIP string) (Tokens, error) {
 	token, err := ParseJWTToken(accessToken)
 	if err != nil || !token.Valid {
 		return Tokens{}, errors.New("unauthorized")
@@ -80,7 +80,7 @@ func (us *UserService) Refresh(ctx context.Context, accessToken, refreshToken st
 	userID := claims["id"].(string)
 	tokenID := claims["token_id"].(string)
 
-	user, err := us.repo.GetUser(ctx, userID)
+	user, err := as.repo.GetUser(ctx, userID)
 	if err != nil {
 		return Tokens{}, err
 	}
@@ -120,7 +120,7 @@ func (us *UserService) Refresh(ctx context.Context, accessToken, refreshToken st
 		return Tokens{}, err
 	}
 
-	if err := us.repo.UpdateUser(ctx, &entities.User{ID: user.ID, RefreshToken: string(hash)}); err != nil {
+	if err := as.repo.UpdateUser(ctx, &entities.User{ID: user.ID, RefreshToken: string(hash)}); err != nil {
 		return Tokens{}, err
 	}
 
