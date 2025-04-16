@@ -35,39 +35,27 @@ func NewUserService(repo UserRepository) *UserService {
 func (us *UserService) Authorize(ctx context.Context, userID uuid.UUID, userIP string) (Tokens, error) {
 	tokenID := uuid.New()
 
-	accesToken, err := auth.GenerateAccessToken(userID.String(), userIP, tokenID.String())
+	accessToken, err := auth.GenerateAccessToken(userID.String(), userIP, tokenID.String())
 	if err != nil {
-		return Tokens{
-			AccessToken:  "",
-			RefreshToken: "",
-		}, err
+		return Tokens{}, err
 	}
 	refreshToken, err := auth.GenerateRefreshToken(userID.String(), userIP, tokenID.String())
 	if err != nil {
-		return Tokens{
-			AccessToken:  "",
-			RefreshToken: "",
-		}, err
+		return Tokens{}, err
 	}
 
 	hash, err := auth.GenerateBCryptHash(refreshToken)
 	if err != nil {
-		return Tokens{
-			AccessToken:  "",
-			RefreshToken: "",
-		}, err
+		return Tokens{}, err
 	}
 
 	if err := us.repo.CreateUser(ctx, &entities.User{ID: userID, RefreshToken: string(hash)}); err != nil {
-		return Tokens{
-			AccessToken:  "",
-			RefreshToken: "",
-		}, err
+		return Tokens{}, err
 	}
 	encodedRefreshToken := base64.StdEncoding.EncodeToString([]byte(refreshToken))
 
 	return Tokens{
-		AccessToken:  accesToken,
+		AccessToken:  accessToken,
 		RefreshToken: encodedRefreshToken,
 	}, nil
 }
