@@ -31,9 +31,16 @@ func (mr *MockAuthRepo) GetUser(ctx context.Context, userID string) (*entities.U
 func (mr *MockAuthRepo) UpdateUser(ctx context.Context, user *entities.User) error {
 	return nil
 }
+type MockSMTPClient struct {
+
+}
+
+func (mockClient *MockSMTPClient) Send (to []string, subject, body string) error {
+	return nil
+}
 
 func TestAuthorize(t *testing.T) {
-	authService := services.NewUserService(&MockAuthRepo{Users: make(map[string]string)})
+	authService := services.NewUserService(&MockAuthRepo{Users: make(map[string]string)}, &MockSMTPClient{})
 	userID := uuid.New()
 	userIP := "127.0.0.1"
 
@@ -100,7 +107,7 @@ func TestAuthorize(t *testing.T) {
 }
 
 func TestRefresh(t *testing.T) {
-	authService := services.NewUserService(&MockAuthRepo{Users: make(map[string]string)})
+	authService := services.NewUserService(&MockAuthRepo{Users: make(map[string]string)}, &MockSMTPClient{})
 	userID := uuid.New()
 
 	tokens, err := authService.Authorize(context.Background(), userID, "127.0.0.1")
