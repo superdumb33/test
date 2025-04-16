@@ -7,18 +7,18 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-type UserController struct {
-	service *services.UserService
+type AuthController struct {
+	service *services.AuthService
 }
 
-func NewUserController(app *fiber.App, service *services.UserService) {
-	handler := &UserController{service: service}
+func NewAuthController(app *fiber.App, service *services.AuthService) {
+	handler := &AuthController{service: service}
 
 	app.Post("/api/v1/users/authorize", handler.Authorize)
 	app.Post("/api/v1/users/refresh", handler.Refresh)
 }
 
-func (uc *UserController) Authorize(c *fiber.Ctx) error {
+func (uc *AuthController) Authorize(c *fiber.Ctx) error {
 	var request dto.AuthorizeUserRequest
 	if err := c.BodyParser(&request); err != nil {
 		return err
@@ -40,7 +40,7 @@ func (uc *UserController) Authorize(c *fiber.Ctx) error {
 	return c.Status(200).JSON(resp)
 }
 
-func (uc *UserController) Refresh(c *fiber.Ctx) error {
+func (uc *AuthController) Refresh(c *fiber.Ctx) error {
 	var request dto.RefreshTokensRequest
 	if err := c.BodyParser(&request); err != nil {
 		return err

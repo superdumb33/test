@@ -10,7 +10,7 @@ import (
 )
 
 func TestCreateAndGetUser(t *testing.T) {
-	authRepo := pgxrepo.NewPgxUserRepository(TestPool)
+	authRepo := pgxrepo.NewPgxAuthRepository(TestPool)
 	validUser := &entities.User{ID: uuid.New(), RefreshToken: "refreshTokenHash"}
 
 	t.Run("Create and get valid user", func (t *testing.T) {
@@ -38,7 +38,7 @@ func TestCreateAndGetUser(t *testing.T) {
 }
 
 func TestUpdateUser(t *testing.T) {
-	authRepo := pgxrepo.NewPgxUserRepository(TestPool)
+	authRepo := pgxrepo.NewPgxAuthRepository(TestPool)
 	validUser := &entities.User{ID: uuid.New(), RefreshToken: "refreshToken"}
 
 
