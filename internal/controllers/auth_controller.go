@@ -23,6 +23,9 @@ func (uc *UserController) Authorize(c *fiber.Ctx) error {
 	if err := c.BodyParser(&request); err != nil {
 		return err
 	}
+	if request.UUID.String() == "" {
+		return c.SendStatus(400)
+	}
 
 	tokens, err := uc.service.Authorize(c.Context(), request.UUID, c.IP())
 	if err != nil {
@@ -42,6 +45,10 @@ func (uc *UserController) Refresh(c *fiber.Ctx) error {
 	if err := c.BodyParser(&request); err != nil {
 		return err
 	}
+	if request.AccessToken == "" || request.RefreshToken == "" {
+		return c.SendStatus(400)
+	}
+	
 	tokens, err := uc.service.Refresh(c.Context(), request.AccessToken, request.RefreshToken, c.IP())
 	if err != nil {
 		return err

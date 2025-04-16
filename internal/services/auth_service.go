@@ -28,6 +28,16 @@ type Tokens struct {
 	RefreshToken string
 }
 
+var (
+	GenerateAccessToken = auth.GenerateAccessToken
+	GenerateRefreshToken = auth.GenerateRefreshToken
+	GenerateBCryptHash = auth.GenerateBCryptHash
+	VerifyRefreshToken = auth.VerifyRefreshToken
+	ParseJWTToken = auth.ParseJWTToken
+	ParseRefreshToken = auth.ParseRefreshToken
+)
+
+
 func NewUserService(repo UserRepository) *UserService {
 	return &UserService{repo: repo}
 }
@@ -35,16 +45,16 @@ func NewUserService(repo UserRepository) *UserService {
 func (us *UserService) Authorize(ctx context.Context, userID uuid.UUID, userIP string) (Tokens, error) {
 	tokenID := uuid.New()
 
-	accessToken, err := auth.GenerateAccessToken(userID.String(), userIP, tokenID.String())
+	accessToken, err := GenerateAccessToken(userID.String(), userIP, tokenID.String())
 	if err != nil {
 		return Tokens{}, err
 	}
-	refreshToken, err := auth.GenerateRefreshToken(userID.String(), userIP, tokenID.String())
+	refreshToken, err := GenerateRefreshToken(userID.String(), userIP, tokenID.String())
 	if err != nil {
 		return Tokens{}, err
 	}
 
-	hash, err := auth.GenerateBCryptHash(refreshToken)
+	hash, err := GenerateBCryptHash(refreshToken)
 	if err != nil {
 		return Tokens{}, err
 	}
@@ -62,7 +72,7 @@ func (us *UserService) Authorize(ctx context.Context, userID uuid.UUID, userIP s
 
 
 func (us *UserService) Refresh(ctx context.Context, accessToken, refreshToken string, userIP string) (Tokens, error) {
-	token, err := auth.ParseJWTToken(accessToken)
+	token, err := ParseJWTToken(accessToken)
 	if err != nil || !token.Valid {
 		return Tokens{}, errors.New("unauthorized")
 	}
@@ -80,11 +90,11 @@ func (us *UserService) Refresh(ctx context.Context, accessToken, refreshToken st
 		return Tokens{}, err
 	}
 	refreshTokenString := string(rawRefreshToken)
-	if err := auth.VerifyRefreshToken(refreshTokenString, user.RefreshToken); err != nil {
+	if err := VerifyRefreshToken(refreshTokenString, user.RefreshToken); err != nil {
 		return Tokens{}, err
 	}
 
-	parsedRefreshtoken, err := auth.ParseRefreshToken(refreshTokenString)
+	parsedRefreshtoken, err := ParseRefreshToken(refreshTokenString)
 	if err != nil {
 		return Tokens{}, err
 	}
@@ -97,15 +107,15 @@ func (us *UserService) Refresh(ctx context.Context, accessToken, refreshToken st
 
 	newTokenID := uuid.New()
 
-	newAccessToken, err := auth.GenerateAccessToken(user.ID.String(), userIP, newTokenID.String())
+	newAccessToken, err := GenerateAccessToken(user.ID.String(), userIP, newTokenID.String())
 	if err != nil {
 		return Tokens{}, err
 	}
-	newRefreshToken, err := auth.GenerateRefreshToken(user.ID.String(), userIP, newTokenID.String())
+	newRefreshToken, err := GenerateRefreshToken(user.ID.String(), userIP, newTokenID.String())
 	if err != nil {
 		return Tokens{}, err
 	}
-	hash, err := auth.GenerateBCryptHash(newRefreshToken)
+	hash, err := GenerateBCryptHash(newRefreshToken)
 	if err != nil {
 		return Tokens{}, err
 	}
