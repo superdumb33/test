@@ -21,8 +21,13 @@
    git clone https://github.com/your-org/your-repo.git
    cd your-repo
    ```
+   
+2. **Copy environment file**
+   ```bash
+   cp .env.example .env
+   ```
 
-2. **Start Docker services**
+3. **Start Docker services**
    ```bash
    docker-compose up --build
    ```
