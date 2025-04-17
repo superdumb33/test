@@ -35,6 +35,7 @@
    **Line Ending Notice**
    
    Please pay attention that after cloning the repo, entrypoint.sh script may have DOS (CRLF) line endings, and Docker can only interprete Unix (LF) line endings
+   
    **Quick fix**
    ```bash
    # dos2unix (if installed)
