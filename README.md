@@ -122,6 +122,7 @@ curl -X POST http://localhost:3000/api/v1/users/refresh \
 ## Running Tests
 
 Unit tests covers service logic (like generation and validation) and repository interactions. To run:
+
 **Notice, that repository tests using test database connection, so in order to run repository tests you have to run test database docker container**
 ```bash
 docker compose up -d test_postgres
