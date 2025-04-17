@@ -37,7 +37,7 @@
 
 ## Configuration
 
-Example `.env`:
+Example `.env.example`:
 
 ```dotenv
 #postgres-db
