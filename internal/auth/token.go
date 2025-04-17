@@ -56,12 +56,21 @@ func GenerateBCryptHash (token string) ([]byte, error) {
 }
 
 func ParseJWTToken(tokenString string) (*jwt.Token, error) {
-	return jwt.Parse(tokenString, func (token *jwt.Token) (interface{}, error) {
+	token, err := jwt.Parse(tokenString, func (token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok || token.Method.Alg() != jwt.SigningMethodHS512.Alg() {
 			return nil, errors.New("unprocessable signing method")
 		}
 		return []byte(os.Getenv("JWT_SECRET")), nil
 	})
+	if err != nil {
+		if errors.Is(err, jwt.ErrTokenExpired) {
+			return token, nil
+		}
+
+		return nil ,err
+	}
+	
+	return token, nil
 }
 
 func ParseRefreshToken (tokenString string) (RefreshToken, error) {
