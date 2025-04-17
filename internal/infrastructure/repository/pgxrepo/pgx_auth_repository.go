@@ -4,6 +4,7 @@ import (
 	"context"
 	"rest-service/internal/entities"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -31,6 +32,9 @@ func (ar *PgxAuthRepository) GetUser (ctx context.Context, userID string) (*enti
 
 	row := ar.db.QueryRow(ctx, query, userID)
 	if err := row.Scan(&user.ID, &user.RefreshToken); err != nil {
+		if err == pgx.ErrNoRows {
+			return nil, entities.NewAppErr(404, "no such user")
+		}
 		return nil, err
 	}
 
