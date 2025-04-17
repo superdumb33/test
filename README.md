@@ -31,6 +31,19 @@
    ```bash
    docker-compose up --build
    ```
+   
+   **Line Ending Notice**
+   Please pay attention that after cloning the repo, entrypoint.sh script may have DOS (CRLF) line endings, and Docker can only interprete Unix (LF) line endings
+   **Quick fix**
+   ```bash
+   # dos2unix (if installed)
+   dos2unix entrypoint.sh
+
+   # with sed (no extra dependencies)
+   sed -i 's/\r$//' entrypoint.sh
+   ```
+   
+  
    The service listens on **localhost:3000** by default.
 
 ---
