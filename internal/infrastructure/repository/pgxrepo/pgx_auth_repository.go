@@ -2,7 +2,6 @@ package pgxrepo
 
 import (
 	"context"
-	"errors"
 	"rest-service/internal/entities"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -43,7 +42,7 @@ func (ar *PgxAuthRepository) UpdateUser (ctx context.Context, user *entities.Use
 
 	tag, err := ar.db.Exec(ctx, query, user.ID, user.RefreshToken)
 	if tag.RowsAffected() == 0 {
-		return errors.New("user doesn't exist")
+		return entities.NewAppErr(550, "no such user")
 	}
 
 	return err

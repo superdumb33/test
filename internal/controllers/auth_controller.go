@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"rest-service/internal/dto"
+	"rest-service/internal/entities"
 	"rest-service/internal/services"
 
 	"github.com/gofiber/fiber/v2"
@@ -24,7 +25,7 @@ func (uc *AuthController) Authorize(c *fiber.Ctx) error {
 		return err
 	}
 	if request.UUID.String() == "" {
-		return c.SendStatus(400)
+		return entities.NewAppErr(400, "user id cannot be empty")
 	}
 
 	tokens, err := uc.service.Authorize(c.Context(), request.UUID, c.IP())
@@ -46,7 +47,7 @@ func (uc *AuthController) Refresh(c *fiber.Ctx) error {
 		return err
 	}
 	if request.AccessToken == "" || request.RefreshToken == "" {
-		return c.SendStatus(400)
+		return entities.NewAppErr(400, "refresh tokens cannot be empty")
 	}
 	
 	tokens, err := uc.service.Refresh(c.Context(), request.AccessToken, request.RefreshToken, c.IP())
