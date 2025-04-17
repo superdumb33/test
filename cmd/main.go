@@ -15,6 +15,7 @@ import (
 
 func main() {
 	app := fiber.New()
+	app.Use(controllers.ErrHandlerMiddleware())
 	db := database.ConnectToDB()
 	smtpClient := smtpclient.NewSMTPClient(os.Getenv("SMTP_FROM"), os.Getenv("SMTP_HOST"), os.Getenv("SMTP_PORT"), "", "")
 

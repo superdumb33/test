@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"rest-service/internal/entities"
 	"strings"
 	"time"
 
@@ -75,7 +76,7 @@ func ParseJWTToken(tokenString string) (*jwt.Token, error) {
 
 func ParseRefreshToken (tokenString string) (RefreshToken, error) {
 	if tokenString == "" {
-		return RefreshToken{}, errors.New("empty token string")
+		return RefreshToken{}, entities.NewAppErr(400, "token cannot be empty")
 	}
 
 	data := strings.Split(tokenString, ":")

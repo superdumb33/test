@@ -77,7 +77,7 @@ func (as *AuthService) Authorize(ctx context.Context, userID uuid.UUID, userIP s
 func (as *AuthService) Refresh(ctx context.Context, accessToken, refreshToken string, userIP string) (Tokens, error) {
 	token, err := ParseJWTToken(accessToken)
 	if err != nil || !token.Valid {
-		return Tokens{}, errors.New("unauthorized")
+		return Tokens{}, entities.NewAppErr(401, "unauthorized")
 	}
 	claims := token.Claims.(jwt.MapClaims)
 	userID := claims["id"].(string)
